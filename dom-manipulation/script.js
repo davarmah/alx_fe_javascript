@@ -7,7 +7,7 @@ const initialQuotes = [
 ];
 quotes = [...initialQuotes];
 
-function displayRandomQuote() {
+function showRandomQuote() {
   const quoteDisplay = document.getElementById("quoteDisplay");
 
   const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
@@ -31,6 +31,6 @@ function addQuote() {
   alert("Quote added!");
 }
 
-document.getElementById("newQuote").addEventListener("click", displayRandomQuote);
+document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
-displayRandomQuote();
+showRandomQuote();
