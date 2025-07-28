@@ -67,6 +67,7 @@ function addQuote() {
   document.getElementById("newQuoteCategory").value = "";
 
   showRandomQuote();
+  syncQuotesToServer();
 }
 
 function populateCategories() {
@@ -126,8 +127,71 @@ function exportToJsonFile() {
   URL.revokeObjectURL(url);
 }
 
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts"; // Can be replaced with a real server later
+
+async function fetchQuotesFromServer() {
+  try {
+    const res = await fetch(SERVER_URL);
+    const serverQuotes = await res.json();
+
+    
+    const cleanedServerQuotes = serverQuotes.map(post => ({
+      text: post.title || "No text",
+      category: "Server"
+    }));
+
+    const combined = [...cleanedServerQuotes];
+    quotes.forEach(localQuote => {
+      if (!combined.some(sq => sq.text === localQuote.text)) {
+        combined.push(localQuote);
+      }
+    });
+
+    quotes = combined;
+    saveQuotes();
+    populateCategories();
+    showRandomQuote();
+    showStatus("Quotes synced with server.", "green");
+  } catch (err) {
+    showStatus("Failed to fetch from server.", "red");
+    console.error(err);
+  }
+}
+
+async function syncQuotesToServer() {
+  try {
+    for (const quote of quotes) {
+      await fetch(SERVER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quote)
+      });
+    }
+    showStatus("Local quotes posted to server.", "blue");
+  } catch (err) {
+    showStatus("Failed to sync to server.", "red");
+  }
+}
+
+function showStatus(message, color = "black") {
+  const statusEl = document.getElementById("status");
+  if (statusEl) {
+    statusEl.innerText = message;
+    statusEl.style.color = color;
+  }
+}
+
+function syncQuotes() {
+  fetchQuotesFromServer();
+  syncQuotesToServer();
+}
+
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 loadQuotes();
 createAddQuoteForm();
 populateCategories();
 showRandomQuote();
+syncQuotes(); 
+
+
+setInterval(fetchQuotesFromServer, 30000); 
